@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+</head>
+
+<body>
+	<div>
+		<button class="button" onclick="tabMove(1)">Tab1</button>
+		<button class="button" onclick="tabMove(2)">Tab2</button>
+		<button class="button" onclick="tabMove(3)">Tab3</button>
+	</div>
+	<div id="container" style="width:800px;height:600px;border:1px solid #ccc"></div>
+
+
+</body>
+
+<script>
+	function tabMove(sqlId) {
+		codeEditorObj.viewContent({
+			sqlId: sqlId, sqlCont: ` ${sqlId}
+			 select * From dual;`})
+	}
+</script>
+
+<script type="module">
+	const codeEditorObj = new codeEditor(document.getElementById('container'), {
+		schema: 'dbnameTest',
+		editorOptions: { theme: 'vs-dark' },
+		keyEvents: {
+			save: () => {
+				console.log('save', codeEditorObj.getValue())
+			}
+		}
+		,onContextMenu : (a,b,c)=>{
+			console.log(a,b,c)
+		}
+	})
+
+
+	var dbSchema = [{
+		dbName: 'dbnameTest'
+		, tables: [
+			{
+				name: 'AFT_MENU',
+				colList: [{
+					name: 'A_column'
+					, typeName: 'varchar'
+					, typeAndLength: 'varchar(10)'
+					, comment: '코멘트'
+				}, {
+					name: 'B_column'
+				}, {
+					name: 'C_column'
+				}
+				]
+			}
+			, {
+				name: 'AFT_MENU_TYPE'
+				, colList: [{
+					name: 'D_column'
+				}, {
+					name: 'E_column'
+				}, {
+					name: 'F_column'
+				}
+				]
+			}
+			, {
+				name: 'PT_ABRD_ATTACH'
+			}
+		]
+	}, {
+		dbName: 'dbnamesample'
+		, tables: [
+			{
+				name: 'AFT_MENU1'
+				, colList: [{
+					name: 'AA_column'
+				}, {
+					name: 'BB_column'
+				}, {
+					name: 'CC_column'
+				}
+				]
+			}
+			, {
+				name: 'tables'
+				, colList: [{
+					name: 'tables_AA_column'
+				}, {
+					name: 'tables_BB_column'
+				}, {
+					name: 'tables_CC_column'
+				}
+				]
+			}
+			, {
+				name: 'TABLE_CONSTRAINTS'
+				, colList: [{
+					name: 'tc_column'
+				}, {
+					name: 'tc_BB_column'
+				}, {
+					name: 'tc_CC_column'
+				}
+				]
+			}
+
+
+			, {
+				name: 'AFT_MENU_TYPE2'
+			}
+			, {
+				name: 'PT_ABRD_ATTACH3'
+			}
+		]
+	}
+	];
+
+	dbSchema.forEach((db) => {
+		let dbSchema1 = db.dbName;
+
+		console.log('dbSchema ', dbSchema1, db.tables)
+
+		codeEditorObj.addSuggestionInfo(dbSchema1, 'table', db.tables);
+	});
+
+	window.codeEditorObj = codeEditorObj;
+
+</script>
+
+</html>
+
+C:/zzz/varsql/resources/varsql
