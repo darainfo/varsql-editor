@@ -29,13 +29,17 @@
 	const codeEditorObj = new codeEditor(document.getElementById('container'), {
 		schema: 'dbnameTest',
 		editorOptions: { theme: 'vs-dark' },
+		contentInfo: {
+			sqlId: 'test1',
+			sqlCont: 'select * From '
+		},
 		keyEvents: {
 			save: () => {
 				console.log('save', codeEditorObj.getValue())
 			}
 		}
-		,onContextMenu : (a,b,c)=>{
-			console.log(a,b,c)
+		, onContextMenu: (a, b, c) => {
+			console.log(a, b, c)
 		}
 	})
 
@@ -123,7 +127,7 @@
 	dbSchema.forEach((db) => {
 		let dbSchema1 = db.dbName;
 
-		console.log('dbSchema ', dbSchema1, db.tables)
+		//console.log('dbSchema ', dbSchema1, db.tables)
 
 		codeEditorObj.addSuggestionInfo(dbSchema1, 'table', db.tables);
 	});
@@ -133,5 +137,3 @@
 </script>
 
 </html>
-
-C:/zzz/varsql/resources/varsql

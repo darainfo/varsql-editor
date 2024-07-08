@@ -18,12 +18,9 @@ const defaultOptions = {
         sqlFormat: () => {
             console.log("sqlFormat");
         },
-       
     },
     change: () => {},
-    onContextMenu :(evt,target)=>{
-
-    },
+    onContextMenu: (evt, target) => {},
     message: {
         execute: "Execute",
         format: "Format",
@@ -67,7 +64,7 @@ export class codeEditor {
         this.config = {
             allModel: {},
             currentContent: {
-                sqlId :''
+                sqlId: "",
             },
             allState: {},
             history: {
@@ -82,7 +79,7 @@ export class codeEditor {
     static setOptions(options) {
         defaultOptions = merge({}, defaultOptions, options);
     }
-    
+
     /**
      * editor 생성
      */
@@ -91,39 +88,38 @@ export class codeEditor {
 
         this.defineInfo = getDefineInfo(opt.mimeType);
 
-        this.editorOptions = merge({}, editorOption, opt.editorOptions); 
+        this.editorOptions = merge({}, editorOption, opt.editorOptions);
 
         monaco.languages.register({ id: "sql" });
         this.editor = monaco.editor.create(this.element, this.editorOptions);
-        this.viewContent(opt.contentInfo||{}, true);
+        this.viewContent(opt.contentInfo || {}, true);
         this.initEvent();
         this.setLanguage();
         this.suggestInfo = new WordSuggestion(this.defineInfo, opt);
 
-        if(opt.onContextMenu){
+        if (opt.onContextMenu) {
             this.editor.onContextMenu(opt.onContextMenu);
         }
     };
 
     /**
-     * 
-     * @param {Object} opts 
+     *
+     * @param {Object} opts
      * {
      *  theme : vs, vs-dark
      *  wordWrap : 'on', 'off'
      * }
      */
-    updateEditorOptions =(opts) => {
-        this.editorOptions = merge({}, this.editorOptions, opts); 
-        this.editor.updateOptions(opts) 
-    }
+    updateEditorOptions = (opts) => {
+        this.editorOptions = merge({}, this.editorOptions, opts);
+        this.editor.updateOptions(opts);
+    };
 
-    getEditorOption=(optKey)=>{
-        if(monaco.editor.EditorOption[optKey]){
+    getEditorOption = (optKey) => {
+        if (monaco.editor.EditorOption[optKey]) {
             return this.editor.getOption(monaco.editor.EditorOption[optKey]);
         }
-    }
-
+    };
 
     /**
      * init editor event 처리
@@ -142,20 +138,23 @@ export class codeEditor {
         });
 
         // Shift+Ctrl+/ 키 조합 커스텀 명령 추가
-        this.editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
+        this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Slash, () => {
             this.editor.trigger("keyboard", "editor.action.commentLine");
         });
 
         // Shift+Ctrl+C 키 조합 커스텀 명령 추가
-        this.editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
+        this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC, () => {
             this.editor.trigger("keyboard", "editor.action.commentLine");
-            // 여기에 원하는 로직을 추가할 수 있습니다.
+        });
+
+        // Shift+Ctrl+K 키 조합 커스텀 명령 추가
+        this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyK, (e) => {
+            this.editor.trigger("keyboard", "editor.action.deleteLines");
         });
 
         // Alt+Left 키 커스텀 명령 추가
         this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.LeftArrow, () => {
             this.history("back");
-            // 여기에 원하는 로직을 추가할 수 있습니다.
         });
 
         // Alt+Right 키 커스텀 명령 추가
@@ -191,7 +190,7 @@ export class codeEditor {
             label: "Transform to Upper Case",
             contextMenuGroupId: "1_modification",
             contextMenuOrder: 1.2,
-            keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyU],
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyU],
             run: (ed) => {
                 this.editor.trigger("keyboard", "editor.action.transformToUppercase");
             },
@@ -202,7 +201,7 @@ export class codeEditor {
             label: "Transform to Lower Case",
             contextMenuGroupId: "1_modification",
             contextMenuOrder: 1.3,
-            keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL],
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL],
             run: (ed) => {
                 this.editor.trigger("keyboard", "editor.action.transformToLowercase");
             },
@@ -267,8 +266,8 @@ export class codeEditor {
     viewContent = (contentInfo, isHistory) => {
         const sqlId = contentInfo.sqlId;
 
-        if(!sqlId){
-            return ; 
+        if (!sqlId) {
+            return;
         }
 
         let viewModel = this.config.allModel[sqlId];
@@ -277,38 +276,39 @@ export class codeEditor {
             this.config.allState[this.config.currentContent.sqlId] = {};
         }
 
-        if(contentInfo['_isChange'] ==='undefined'){
-            contentInfo['_isChange'] = false; 
+        if (contentInfo["_isChange"] === "undefined") {
+            contentInfo["_isChange"] = false;
         }
 
         if (isHistory !== false) {
             this.history("add", contentInfo);
         }
-        
-        this.config.allState[this.config.currentContent.sqlId] ={
-            viewState : this.editor.saveViewState()
-            ,cursorPosition : this.editor.getPosition()
+
+        this.config.allState[this.config.currentContent.sqlId] = {
+            viewState: this.editor.saveViewState(),
+            cursorPosition: this.editor.getPosition(),
         };
 
         this.editor.setModel(viewModel);
 
         // 스크롤 위치 반영.
-        let viewState = (this.config.allState[sqlId] ||{}).viewState;
+        let viewState = (this.config.allState[sqlId] || {}).viewState;
         if (typeof viewState === "undefined") {
-            let position = {"lineNumber":1,"column":1};
-            try{
-				position = JSON.parse(contentInfo.editorCursor)
-			}catch(e){
-				console.log(e);
-			}
+            let position = { lineNumber: 1, column: 1 };
+            try {
+                position = JSON.parse(contentInfo.editorCursor);
+            } catch (e) {
+                //console.log(e);
+            }
 
-            this.editor.setPosition(position);
-            this.editor.revealPosition(position);
-        }else{
+            const movePostion = new monaco.Position(position.lineNumber || 1, position.column || 1);
+            this.editor.setPosition(movePostion);
+            this.editor.revealPosition(movePostion, monaco.editor.ScrollType.Immediate);
+        } else {
             this.editor.restoreViewState(viewState);
         }
-        
-        this.editor.focus();        
+
+        this.editor.focus();
         this.config.currentContent = contentInfo;
     };
 
@@ -326,19 +326,18 @@ export class codeEditor {
 
     /**
      * content 여부
-     * 
+     *
      * @param {String} sqlId sql id
      * @returns {Boolean} content 여부
      */
-    existsContent =(sqlId)=>{
-        return this.config.allModel[sqlId]?true:false;
-    }
+    existsContent = (sqlId) => {
+        return this.config.allModel[sqlId] ? true : false;
+    };
 
     getSqlDefineInfo = (dbtype) => {
         return getDefineInfo(dbtype);
     };
 
-    
     addSuggestionInfo = (schema, type, objectInfo) => {
         this.suggestInfo.addDbObject(schema, type, objectInfo);
     };
@@ -348,6 +347,9 @@ export class codeEditor {
     history = (mode, historyItem) => {
         const backArr = this.config.history.back,
             forwardArr = this.config.history.forward;
+
+        console.log(mode, historyItem);
+
         if (mode == "back") {
             const backArrLen = backArr.length;
 
@@ -433,13 +435,13 @@ export class codeEditor {
 
     /**
      * editor content value
-     * 
+     *
      * @param {String} sqlid
-     * @returns {String} 
+     * @returns {String}
      */
     getValue = (sqlId) => {
-        if(sqlId){
-            if(this.config.allModel[sqlId]){
+        if (sqlId) {
+            if (this.config.allModel[sqlId]) {
                 return this.config.allModel[sqlId].getValue();
             }
             return "";
@@ -448,10 +450,10 @@ export class codeEditor {
     };
 
     /**
-     * set content 
-     * 
-     * @param {String} content 
-     * @returns 
+     * set content
+     *
+     * @param {String} content
+     * @returns
      */
     setValue = (content) => {
         this.editor.setValue(content);
@@ -480,8 +482,7 @@ export class codeEditor {
     setSelection = (range) => {
         const r = new monaco.Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn);
         this.editor.setSelection(r);
-        this.editor.revealLineInCenter(startLineNumber);  
-      
+        this.editor.revealLineInCenter(startLineNumber);
     };
     /**
      * insert text
@@ -516,10 +517,10 @@ export class codeEditor {
             },
         ]);
 
-
         const movePostion = new monaco.Position(position.endLineNumber, position.endColumn);
         this.editor.setPosition(movePostion);
-        this.editor.focus();        
+        this.editor.revealPosition(movePostion, monaco.editor.ScrollType.Immediate);
+        this.editor.focus();
     };
     /**
      * 선택 영역 포지션 값
@@ -560,9 +561,8 @@ export class codeEditor {
         }
      */
     getCursorPosition = (sqlId) => {
-        
-        if(sqlId && sqlId !== this.config.currentContent.sqlId){
-            if(this.config.allState[sqlId]){
+        if (sqlId && sqlId !== this.config.currentContent.sqlId) {
+            if (this.config.allState[sqlId]) {
                 return this.config.allState[sqlId].cursorPosition;
             }
             return {
@@ -596,7 +596,7 @@ export class codeEditor {
      * 찾기 열기
      */
     find = () => {
-        this.editor.trigger('keyboard', 'actions.find');
+        this.editor.trigger("keyboard", "actions.find");
     };
 
     /**
