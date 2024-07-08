@@ -12,13 +12,11 @@ export class WordSuggestion {
         this.baseSchema = options.schema || DEFAULT_SCHEMA;
 
         this.allDbObjects = {};
-        this.allDbObjects[this.baseSchema] = {};
         this.initSuggestion();
         this.dbObjectSuggestion();
 
-        if (options.type) {
-            this.addDbObject(options.schema, options.type, options.objectInfos || []);
-        }
+        this.addDbObject(this.baseSchema, options.type || "table", options.objectInfos || []);
+        this.baseSchema = this.baseSchema.toLowerCase();
     }
 
     addDbObject(schema, type, objectInfos) {
@@ -42,8 +40,8 @@ export class WordSuggestion {
         }
 
         if (this.allDbObjects[schemaLower][type]) {
-            const beforeArr = this.allDbObjects[schema][type];
-            this.allDbObjects[schemaLower][type] = beforeArr.concat(objectInfos.filter((obj2) => !beforeArr.some((obj1) => obj1.name === obj2.name)));
+            const beforeArr = this.allDbObjects[schemaLower][type].filter((obj1) => !objectInfos.some((obj2) => obj1.name === obj2.name));
+            this.allDbObjects[schemaLower][type] = beforeArr.concat(objectInfos);
         } else {
             this.allDbObjects[schemaLower][type] = objectInfos;
         }
@@ -211,7 +209,6 @@ export class WordSuggestion {
                 }
                 let hintArr = [];
                 if ("from" == prevMatchKeyword || "update" == prevMatchKeyword) {
-                    lastToken = lastToken.endsWith(",") ? prevMatchKeyword : lastToken;
                     hintArr.push("SCHEMA");
                     hintArr.push("TABLE");
                 } else if ("set" == prevMatchKeyword) {
@@ -267,12 +264,14 @@ export class WordSuggestion {
                         .slice(0, lastToken.length - 1)
                         .replace(/^.*,/g, "")
                         .toLowerCase();
+
                     // "." 앞에 특수 문자 가 있으면 특수 문자 제거,
                     dbNameOrAlias = dbNameOrAlias.replace(/[([{\\<\?]+/g, ";;").replace(/.*;;/, "");
                     // 스키마나 데이터베이스명에 뭍은 ",[] 제거
                     dbNameOrAlias = dbNameOrAlias.replace(/["\[\]]+/g, "");
 
                     const schema = this.getSchema(dbNameOrAlias);
+
                     // 스키마 체크
                     if (schema) {
                         // 스키마에 해당하는 테이블e
@@ -295,6 +294,10 @@ export class WordSuggestion {
                     return {
                         suggestions: [],
                     };
+                }
+
+                if ("from" == prevMatchKeyword || "update" == prevMatchKeyword) {
+                    lastToken = prevMatchKeyword;
                 }
 
                 if (hintArr.length > 0) {
@@ -353,9 +356,6 @@ export class WordSuggestion {
             (this.allDbObjects[this.baseSchema].tables || []).forEach((table) => {
                 returnArr.push(getTableSuggest(this.baseSchema, table, lastToken));
             });
-            (this.allDbObjects[this.baseSchema].tables || []).forEach((table) => {
-                returnArr.push(getTableSuggest(this.baseSchema, table, lastToken));
-            });
         }
         return returnArr;
     }
@@ -395,9 +395,10 @@ export class WordSuggestion {
         Object.keys(this.allDbObjects).forEach((schema) => {
             (this.allDbObjects[schema].tables || []).forEach((table) => {
                 if (tableName === table.name) {
+                    let colIdx = 0;
                     table.colList &&
                         table.colList.forEach((column) => {
-                            returnArr.push(getColumnSuggestObject(column, tableName));
+                            returnArr.push(getColumnSuggestObject(column, tableName, ++colIdx));
                         });
                 }
             });
@@ -434,13 +435,13 @@ function getTableSuggest(schema, table, lastToken) {
  * @param {String} tableName  테이블명
  * @returns {Object} 컬럼 정보
  */
-function getColumnSuggestObject(column, tableName) {
+function getColumnSuggestObject(column, tableName, colIdx) {
     const columnName = column.name ? column.name : "";
     return {
         label: columnName,
         kind: monaco.languages.CompletionItemKind.Field,
         detail: `${column.comment || ""} <${column.typeName}>`,
-        sortText: "2" + tableName,
+        sortText: "2" + tableName + "" + colIdx,
         insertText: columnName,
         documentation: `Table : ${tableName}\nType : ${column.typeAndLength}`,
     };
