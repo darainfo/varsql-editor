@@ -296,7 +296,9 @@ export class codeEditor {
         if (typeof viewState === "undefined") {
             let position = { lineNumber: 1, column: 1 };
             try {
-                position = JSON.parse(contentInfo.editorCursor);
+                if (contentInfo.editorCursor) {
+                    position = JSON.parse(contentInfo.editorCursor);
+                }
             } catch (e) {
                 //console.log(e);
             }
@@ -348,7 +350,7 @@ export class codeEditor {
         const backArr = this.config.history.back,
             forwardArr = this.config.history.forward;
 
-        console.log(mode, historyItem);
+        const keyEvts = this.options.keyEvents;
 
         if (mode == "back") {
             const backArrLen = backArr.length;
@@ -365,6 +367,7 @@ export class codeEditor {
 
                 if (viewItem.sqlId != this.config.currentContent.sqlId && viewItem.sqlId != beforeItem.sqlId) {
                     this.viewContent(viewItem, false);
+                    keyEvts.history(viewItem, "back");
                     break;
                 }
 
@@ -388,6 +391,7 @@ export class codeEditor {
 
                 if (viewItem.sqlId != this.config.currentContent.sqlId && viewItem.sqlId != beforeItem.sqlId) {
                     this.viewContent(viewItem, false);
+                    keyEvts.history(viewItem, "forward");
                     break;
                 }
                 beforeItem = viewItem;
@@ -514,6 +518,7 @@ export class codeEditor {
             {
                 range: range,
                 text: str,
+                forceMoveMarkers: true,
             },
         ]);
 
@@ -521,6 +526,17 @@ export class codeEditor {
         this.editor.setPosition(movePostion);
         this.editor.revealPosition(movePostion, monaco.editor.ScrollType.Immediate);
         this.editor.focus();
+    };
+
+    replaceAllContent = (str) => {
+        this.editor.setSelection({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: this.editor.getModel().getLineCount(),
+            endColumn: this.editor.getModel().getLineMaxColumn(this.editor.getModel().getLineCount()),
+        });
+
+        this.insertText(str, true);
     };
     /**
      * 선택 영역 포지션 값
