@@ -12,7 +12,17 @@
 		<button class="button" onclick="tabMove(2)">Tab2</button>
 		<button class="button" onclick="tabMove(3)">Tab3</button>
 	</div>
-	<div id="container" style="width:800px;height:600px;border:1px solid #ccc"></div>
+	<table style="width:100%;">
+		<tr>
+			<td>
+				<div id="container" style="width:500px;height:600px;border:1px solid #ccc"></div>
+			</td>
+			<td>
+				<div id="container2" style="width:800px;height:600px;border:1px solid #ccc"></div>
+			</td>
+		</tr>
+	</table>
+
 
 
 </body>
@@ -26,6 +36,10 @@
 </script>
 
 <script type="module">
+	const diffEditor = codeEditor.diffEditor(document.getElementById('container2'));
+
+	diffEditor.diff("select * From dual", "select * from dual")
+
 	const codeEditorObj = new codeEditor(document.getElementById('container'), {
 		schema: 'dbnameTest',
 		editorOptions: { theme: 'vs-dark' },

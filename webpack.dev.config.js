@@ -72,7 +72,7 @@ module.exports = {
         */
         new MonacoWebpackPlugin({
             filename: "[hash].worker.js",
-            languages: ["sql", "javascript", "html", "json"],
+            languages: ["sql", "javascript", "typescript", "html", "json", "xml", "handlebars"],
             globalAPI: true,
         }),
         new webpack.DefinePlugin({

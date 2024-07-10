@@ -2,6 +2,7 @@ import * as monaco from "monaco-editor";
 import { getDefineInfo } from "./language/allLanguage";
 import { WordSuggestion } from "./WordSuggestion";
 import { merge } from "./utils/util";
+import { DiffContent } from "./DiffContent";
 
 const defaultOptions = {
     width: "", // toast width
@@ -76,6 +77,10 @@ export class codeEditor {
         this.create();
     }
 
+    static diffEditor(element, options) {
+        return new DiffContent(element, options);
+    }
+
     static setOptions(options) {
         defaultOptions = merge({}, defaultOptions, options);
     }
@@ -94,7 +99,6 @@ export class codeEditor {
         this.editor = monaco.editor.create(this.element, this.editorOptions);
         this.viewContent(opt.contentInfo || {}, true);
         this.initEvent();
-        this.setLanguage();
         this.suggestInfo = new WordSuggestion(this.defineInfo, opt);
 
         if (opt.onContextMenu) {
@@ -344,7 +348,11 @@ export class codeEditor {
         this.suggestInfo.addDbObject(schema, type, objectInfo);
     };
 
-    setLanguage() {}
+    changeLanguage = (language) => {
+        var currentValue = this.editor.getValue();
+        var newModel = monaco.editor.createModel(currentValue, language);
+        this.editor.setModel(newModel);
+    };
 
     history = (mode, historyItem) => {
         const backArr = this.config.history.back,
@@ -459,8 +467,11 @@ export class codeEditor {
      * @param {String} content
      * @returns
      */
-    setValue = (content) => {
+    setValue = (content, language) => {
         this.editor.setValue(content);
+        if (language) {
+            this.changeLanguage(language);
+        }
     };
 
     /**
