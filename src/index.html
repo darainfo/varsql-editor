@@ -12,6 +12,9 @@
 		<button class="button" onclick="tabMove(2)">Tab2</button>
 		<button class="button" onclick="tabMove(3)">Tab3</button>
 	</div>
+	<div>
+		<button class="button" onclick="addText(3)">addText</button>
+	</div>
 	<table style="width:100%;">
 		<tr>
 			<td>
@@ -33,19 +36,32 @@
 			sqlId: sqlId, sqlCont: ` ${sqlId}
 			 select * From dual;`})
 	}
+
+	function addText() {
+		codeEditorObj.insertText(`insert into222 PT_ABRD_COMftescaewc (KEY1, KEY2, KEYNM, DATA1, DATA2, DATA3, DATA4, DATA5, INSUSER, INSTIME, UPDUSER, UPDTIME )
+values( #{KEY1},  #{KEY2},  #{KEYNM},  #{DATA1},  #{DATA2},  #{DATA3},  #{DATA4},  #{DATA5},  #{INSUSER},  #{INSTIME},  #{UPDUSER},  #{UPDTIME} );aecaweawec
+`, true)
+	}
 </script>
 
 <script type="module">
-	const diffEditor = codeEditor.diffEditor(document.getElementById('container2'));
-
-	diffEditor.diff("select * From dual", "select * from dual")
+	//	const diffEditor = codeEditor.diffEditor(document.getElementById('container2'));
+	//	diffEditor.diff("select * From dual", "select * from dual")
 
 	const codeEditorObj = new codeEditor(document.getElementById('container'), {
 		schema: 'dbnameTest',
 		editorOptions: { theme: 'vs-dark' },
 		contentInfo: {
 			sqlId: 'test1',
-			sqlCont: 'select * From '
+			sqlCont: `select    *
+from      AFT_MENU am
+where     am.MENU_TP MONTH in ('12', '1')
+and       am.
+
+BRD_TYPE	BRD_CD	DEPT_CD	DEPT_NMBRD_TYPE , BRD_CD , DEPT_CD , DEPT_NM BRD_TYPE='BASIC' 
+and BRD_CD='BA0053' 
+and DEPT_CD in ('21262','21259','21245','21243','21236','21261') 
+and DEPT_NM in ('경인AM지점','다복AM지점','대경AM지점','대구AM지점','동부AM지점','로얄AM지점') `
 		},
 		keyEvents: {
 			save: () => {

@@ -8,16 +8,16 @@ const defaultOptions = {
     width: "", // toast width
     keyEvents: {
         save: () => {
-            console.log("save");
+            //console.log("save");
         },
         history: (mode) => {
-            console.log("history", mode);
+            // console.log("history", mode);
         },
         executeSql: () => {
-            console.log("executeSql");
+            //console.log("executeSql");
         },
         sqlFormat: () => {
-            console.log("sqlFormat");
+            //console.log("sqlFormat");
         },
     },
     change: () => {},
@@ -497,7 +497,7 @@ export class codeEditor {
     setSelection = (range) => {
         const r = new monaco.Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn);
         this.editor.setSelection(r);
-        this.editor.revealLineInCenter(startLineNumber);
+        this.editor.revealLineInCenter(range.startLineNumber);
     };
     /**
      * insert text
@@ -533,7 +533,15 @@ export class codeEditor {
             },
         ]);
 
-        const movePostion = new monaco.Position(position.endLineNumber, position.endColumn);
+        let lineTextArr = str.split(/\n/g);
+
+        let movePostion;
+        if (lineTextArr.length == 1) {
+            movePostion = new monaco.Position(position.startLineNumber, position.startColumn + str.length);
+        } else {
+            movePostion = new monaco.Position(position.startLineNumber + lineTextArr.length - 1, lineTextArr[lineTextArr.length - 1].length);
+        }
+
         this.editor.setPosition(movePostion);
         this.editor.revealPosition(movePostion, monaco.editor.ScrollType.Immediate);
         this.editor.focus();
