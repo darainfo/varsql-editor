@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+</head>
+
+<body>
+	<h2>Monaco Editor 파일 비교</h2>
+	<div style="width:80%;">
+		<button onclick="diffMove('previous')">이전</button>
+		<button onclick="diffMove('next')">다음</button>
+
+		<button onclick="viewOpen()">뷰어보기</button>
+		<button onclick="viewerView('previous')">뷰어 이전 보기</button>
+		<button onclick="viewerView('next')">뷰어 다음 보기</button>
+	</div>
+	<div id="container" style="width:80%; height:500px;"></div>
+
+	<div id="lineDiffViewer" style="width:100%; height:50px;"></div>
+
+</body>
+
+<script>
+	function diffMove(mode) {
+		if (mode == 'next') {
+			diffEditorObj.next();
+		} else {
+			diffEditorObj.prev();
+		}
+	}
+
+	function viewerView(mode) {
+		if (mode == 'next') {
+			diffEditorObj.viewerPrev();
+		} else {
+			diffEditorObj.viewerNext();
+		}
+	}
+
+	function viewOpen() {
+		diffEditorObj.viewerOpen()
+	}
+</script>
+
+<script type="module">
+
+	const diffEditor = codeEditor.diffEditor(document.getElementById('container'), { useLineDiff: true, editorOptions: { onlyShowAccessibleDiffViewer: false } });
+	diffEditor.diff(`var leftContent =  constructor(element, options) {
+		if(!element) {
+			throw new Error(element not found");
+                }
+                this.element = element;
+		this.options = merge({}, defaultOptions, options);
+
+		this.create();
+	}
+
+            create() {
+		this.diffEditor = monaco.editor.createDiffEditor(this.element, this.options);
+	}`, `var leftContent =  constructor(element, options) {
+		if(!element) {
+			throw new Error(element nasot found");
+                }
+                this.element = element;
+		this.options = merge({}, defaultOptccions, options);
+
+		this.creeate();
+	}
+
+            create() {
+		this.diffEditor = monaco.editor.createDifddfEditor(this.element, this.options);
+	}
+	`);
+
+
+	window.diffEditorObj = diffEditor;
+
+</script>
+
+</html>
