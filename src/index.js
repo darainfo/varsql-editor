@@ -2,21 +2,22 @@ import * as monaco from "monaco-editor";
 import { getDefineInfo } from "./language/allLanguage";
 import { WordSuggestion } from "./WordSuggestion";
 import { merge } from "./utils/util";
+import { DiffContent } from "./DiffContent";
 
 const defaultOptions = {
     width: "", // toast width
     keyEvents: {
         save: () => {
-            console.log("save");
+            //console.log("save");
         },
         history: (mode) => {
-            console.log("history", mode);
+            // console.log("history", mode);
         },
         executeSql: () => {
-            console.log("executeSql");
+            //console.log("executeSql");
         },
         sqlFormat: () => {
-            console.log("sqlFormat");
+            //console.log("sqlFormat");
         },
     },
     change: () => {},
@@ -76,6 +77,10 @@ export class codeEditor {
         this.create();
     }
 
+    static diffEditor(element, options) {
+        return new DiffContent(element, options);
+    }
+
     static setOptions(options) {
         defaultOptions = merge({}, defaultOptions, options);
     }
@@ -94,7 +99,6 @@ export class codeEditor {
         this.editor = monaco.editor.create(this.element, this.editorOptions);
         this.viewContent(opt.contentInfo || {}, true);
         this.initEvent();
-        this.setLanguage();
         this.suggestInfo = new WordSuggestion(this.defineInfo, opt);
 
         if (opt.onContextMenu) {
@@ -296,7 +300,9 @@ export class codeEditor {
         if (typeof viewState === "undefined") {
             let position = { lineNumber: 1, column: 1 };
             try {
-                position = JSON.parse(contentInfo.editorCursor);
+                if (contentInfo.editorCursor) {
+                    position = JSON.parse(contentInfo.editorCursor);
+                }
             } catch (e) {
                 //console.log(e);
             }
@@ -342,13 +348,17 @@ export class codeEditor {
         this.suggestInfo.addDbObject(schema, type, objectInfo);
     };
 
-    setLanguage() {}
+    changeLanguage = (language) => {
+        var currentValue = this.editor.getValue();
+        var newModel = monaco.editor.createModel(currentValue, language);
+        this.editor.setModel(newModel);
+    };
 
     history = (mode, historyItem) => {
         const backArr = this.config.history.back,
             forwardArr = this.config.history.forward;
 
-        console.log(mode, historyItem);
+        const keyEvts = this.options.keyEvents;
 
         if (mode == "back") {
             const backArrLen = backArr.length;
@@ -365,6 +375,7 @@ export class codeEditor {
 
                 if (viewItem.sqlId != this.config.currentContent.sqlId && viewItem.sqlId != beforeItem.sqlId) {
                     this.viewContent(viewItem, false);
+                    keyEvts.history(viewItem, "back");
                     break;
                 }
 
@@ -388,6 +399,7 @@ export class codeEditor {
 
                 if (viewItem.sqlId != this.config.currentContent.sqlId && viewItem.sqlId != beforeItem.sqlId) {
                     this.viewContent(viewItem, false);
+                    keyEvts.history(viewItem, "forward");
                     break;
                 }
                 beforeItem = viewItem;
@@ -455,8 +467,11 @@ export class codeEditor {
      * @param {String} content
      * @returns
      */
-    setValue = (content) => {
+    setValue = (content, language) => {
         this.editor.setValue(content);
+        if (language) {
+            this.changeLanguage(language);
+        }
     };
 
     /**
@@ -482,7 +497,7 @@ export class codeEditor {
     setSelection = (range) => {
         const r = new monaco.Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn);
         this.editor.setSelection(r);
-        this.editor.revealLineInCenter(startLineNumber);
+        this.editor.revealLineInCenter(range.startLineNumber);
     };
     /**
      * insert text
@@ -514,13 +529,33 @@ export class codeEditor {
             {
                 range: range,
                 text: str,
+                forceMoveMarkers: true,
             },
         ]);
 
-        const movePostion = new monaco.Position(position.endLineNumber, position.endColumn);
+        let lineTextArr = str.split(/\n/g);
+
+        let movePostion;
+        if (lineTextArr.length == 1) {
+            movePostion = new monaco.Position(position.startLineNumber, position.startColumn + str.length);
+        } else {
+            movePostion = new monaco.Position(position.startLineNumber + lineTextArr.length - 1, lineTextArr[lineTextArr.length - 1].length);
+        }
+
         this.editor.setPosition(movePostion);
         this.editor.revealPosition(movePostion, monaco.editor.ScrollType.Immediate);
         this.editor.focus();
+    };
+
+    replaceAllContent = (str) => {
+        this.editor.setSelection({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: this.editor.getModel().getLineCount(),
+            endColumn: this.editor.getModel().getLineMaxColumn(this.editor.getModel().getLineCount()),
+        });
+
+        this.insertText(str, true);
     };
     /**
      * 선택 영역 포지션 값

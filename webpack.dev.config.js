@@ -60,7 +60,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             inject: true,
-            template: "src/index.html",
+            template: "src/diffHtml.html",
         }),
         new MiniCssExtractPlugin({
             filename: "sql.editor.min.css",
@@ -72,7 +72,7 @@ module.exports = {
         */
         new MonacoWebpackPlugin({
             filename: "[hash].worker.js",
-            languages: ["sql", "javascript", "html", "json"],
+            languages: ["sql", "javascript", "typescript", "html", "json", "xml", "handlebars"],
             globalAPI: true,
         }),
         new webpack.DefinePlugin({

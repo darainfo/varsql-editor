@@ -398,7 +398,7 @@ export class WordSuggestion {
                     let colIdx = 0;
                     table.colList &&
                         table.colList.forEach((column) => {
-                            returnArr.push(getColumnSuggestObject(column, tableName, ++colIdx));
+                            returnArr.push(getColumnSuggestObject(column, tableName, 1000 + ++colIdx));
                         });
                 }
             });
@@ -441,7 +441,7 @@ function getColumnSuggestObject(column, tableName, colIdx) {
         label: columnName,
         kind: monaco.languages.CompletionItemKind.Field,
         detail: `${column.comment || ""} <${column.typeName}>`,
-        sortText: "2" + tableName + "" + colIdx,
+        sortText: `2_${tableName}${colIdx}`,
         insertText: columnName,
         documentation: `Table : ${tableName}\nType : ${column.typeAndLength}`,
     };
