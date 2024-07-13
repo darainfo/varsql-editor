@@ -13,6 +13,8 @@
 		<button onclick="diffMove('next')">다음</button>
 
 		<button onclick="viewOpen()">뷰어보기</button>
+		<button onclick="viewClose()">뷰어닫기</button>
+		
 		<button onclick="viewerView('previous')">뷰어 이전 보기</button>
 		<button onclick="viewerView('next')">뷰어 다음 보기</button>
 	</div>
@@ -42,6 +44,11 @@
 	function viewOpen() {
 		diffEditorObj.viewerOpen()
 	}
+
+	function viewClose() {
+		diffEditorObj.viewerClose()
+	}
+
 </script>
 
 <script type="module">

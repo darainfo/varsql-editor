@@ -21,6 +21,7 @@ const defaultOptions = {
         },
     },
     change: () => {},
+    contextItems : [],
     onContextMenu: (evt, target) => {},
     message: {
         execute: "Execute",
@@ -243,6 +244,30 @@ export class codeEditor {
                 ed.trigger("keyboard", "editor.action.clipboardPasteAction");
             },
         });
+
+        const contextItems = this.options.contextItems;
+
+        if(Array.isArray(contextItems)){
+            let idx =0 ; 
+            for(let contextItem of contextItems){
+                let addItem = {
+                    id: "varsql.custom.context_"+(++idx),
+                    label: contextItem.label,
+                    contextMenuGroupId: "3_customcontextmenu",
+                    contextMenuOrder: idx,
+                    run: function (ed) {
+                        if(contextItem.action){
+                            contextItem.action(ed);
+                        }
+                    },
+                }; 
+
+                if(contextItem.hotKey){
+                    addItem.keybindings = contextItem.hotKey;
+                }
+                this.editor.addAction(addItem);
+            }
+        }
 
         // 불필요한 컨텍스트 메뉴 제거.
         const removableIds = ["editor.action.quickCommand", "editor.action.clipboardCutAction", "editor.action.clipboardCopyAction", "editor.action.clipboardPasteAction"];

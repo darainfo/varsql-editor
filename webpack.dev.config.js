@@ -61,6 +61,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: true,
             template: "src/diffHtml.html",
+            //template: "src/index.html",
         }),
         new MiniCssExtractPlugin({
             filename: "sql.editor.min.css",

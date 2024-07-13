@@ -54,14 +54,13 @@ export class DiffContent {
         if (this.options.useLineDiff) {
             this.diffEditor.getOriginalEditor().onMouseUp((event) => {
                 const position = event.target.position;
-                const lineNumber = position.lineNumber;
-
+                const lineNumber = (position||{}).lineNumber;
                 this.lineDiff(lineNumber);
             });
 
             this.diffEditor.getModifiedEditor().onMouseUp((event) => {
                 const position = event.target.position;
-                const lineNumber = position.lineNumber;
+                const lineNumber = (position||{}).lineNumber;
                 this.lineDiff(lineNumber);
             });
 
@@ -111,6 +110,11 @@ export class DiffContent {
     };
 
     lineDiff(lineNumber) {
+
+        if(lineNumber ==null || lineNumber==""|| typeof lineNumber ==='undefined'){
+            return ; 
+        }
+
         if (this.options.useLineDiff) {
             const orginEditor = this.diffEditor.getOriginalEditor().getModel();
             const modifiedEditor = this.diffEditor.getModifiedEditor().getModel();
