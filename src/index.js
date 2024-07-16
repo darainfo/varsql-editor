@@ -20,8 +20,9 @@ const defaultOptions = {
             //console.log("sqlFormat");
         },
     },
+    usePaste: false,
     change: () => {},
-    contextItems : [],
+    contextItems: [],
     onContextMenu: (evt, target) => {},
     message: {
         execute: "Execute",
@@ -234,35 +235,37 @@ export class codeEditor {
             },
         });
 
-        this.editor.addAction({
-            id: "varsql.paste",
-            label: this.options.message.paste,
-            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
-            contextMenuGroupId: "9_cutcopypaste",
-            contextMenuOrder: 1.2,
-            run: function (ed) {
-                ed.trigger("keyboard", "editor.action.clipboardPasteAction");
-            },
-        });
+        if (this.options.usePaste && (navigator.clipboard || document.queryCommandSupported("paste")) && window.isSecureContext) {
+            this.editor.addAction({
+                id: "varsql.paste",
+                label: this.options.message.paste,
+                keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
+                contextMenuGroupId: "9_cutcopypaste",
+                contextMenuOrder: 1.2,
+                run: function (ed) {
+                    ed.trigger("keyboard", "editor.action.clipboardPasteAction");
+                },
+            });
+        }
 
         const contextItems = this.options.contextItems;
 
-        if(Array.isArray(contextItems)){
-            let idx =0 ; 
-            for(let contextItem of contextItems){
+        if (Array.isArray(contextItems)) {
+            let idx = 0;
+            for (let contextItem of contextItems) {
                 let addItem = {
-                    id: "varsql.custom.context_"+(++idx),
+                    id: "varsql.custom.context_" + ++idx,
                     label: contextItem.label,
                     contextMenuGroupId: "3_customcontextmenu",
                     contextMenuOrder: idx,
                     run: function (ed) {
-                        if(contextItem.action){
+                        if (contextItem.action) {
                             contextItem.action(ed);
                         }
                     },
-                }; 
+                };
 
-                if(contextItem.hotKey){
+                if (contextItem.hotKey) {
                     addItem.keybindings = contextItem.hotKey;
                 }
                 this.editor.addAction(addItem);
@@ -270,7 +273,8 @@ export class codeEditor {
         }
 
         // 불필요한 컨텍스트 메뉴 제거.
-        const removableIds = ["editor.action.quickCommand", "editor.action.clipboardCutAction", "editor.action.clipboardCopyAction", "editor.action.clipboardPasteAction"];
+        //const removableIds = ["editor.action.quickCommand", "editor.action.clipboardCutAction", "editor.action.clipboardCopyAction", "editor.action.clipboardPasteAction"];
+        const removableIds = [];
         const contextmenu = this.editor.getContribution("editor.contrib.contextmenu");
         const realMethod = contextmenu._getMenuActions;
 

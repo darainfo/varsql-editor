@@ -14,6 +14,7 @@ const ALL_DEFINE = { oracle, mariadb, mysql, postgresql, mssql };
  * @returns
  */
 export function getDefineInfo(mimeType) {
+    mimeType = (mimeType || "").toLowerCase();
     const mimeTypeDefineInfo = ALL_DEFINE[mimeType];
     if (typeof mimeTypeDefineInfo === "undefined") {
         return {
