@@ -49,6 +49,7 @@ const editorOption = {
         horizontal: "visible",
         horizontalScrollbarSize: 12,
         verticalScrollbarSize: 12,
+        alwaysConsumeMouseWheel: false,
     },
 };
 
@@ -683,6 +684,14 @@ export class codeEditor {
      */
     resize = (size) => {
         this.editor.layout();
+    };
+
+    /**
+     * editor focus
+     *
+     */
+    focus = () => {
+        this.editor.focus();
     };
 
     /**
