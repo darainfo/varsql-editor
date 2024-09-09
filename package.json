@@ -27,7 +27,7 @@
         "webpack-dev-server": "^4.9.2"
     },
     "dependencies": {
-        "monaco-editor": "^0.50.0",
+        "monaco-editor": "^0.51.0",
         "sass": "^1.77.6"
     }
 }

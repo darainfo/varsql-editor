@@ -24,6 +24,7 @@ const defaultOptions = {
     change: () => {},
     contextItems: [],
     onContextMenu: (evt, target) => {},
+    useDocumentSuggest: true,
     message: {
         execute: "Execute",
         format: "Format",

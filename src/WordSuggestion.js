@@ -14,6 +14,7 @@ export class WordSuggestion {
         this.allDbObjects = {};
         this.initSuggestion();
         this.dbObjectSuggestion();
+        this.mainOptions = options;
 
         this.addDbObject(this.baseSchema, options.type || "table", options.objectInfos || []);
         this.baseSchema = this.baseSchema.toLowerCase();
@@ -49,6 +50,12 @@ export class WordSuggestion {
 
     initSuggestion() {
         const defineInfo = this.defineInfo;
+
+        let allDefineInfos = [];
+        for (const [key, value] of Object.entries(defineInfo)) {
+            allDefineInfos.push(...value);
+        }
+
         // SQL 자동완성 항목 정의
         monaco.languages.registerCompletionItemProvider("sql", {
             provideCompletionItems: (model, position) => {
@@ -64,9 +71,12 @@ export class WordSuggestion {
                 const tokens = beforeText.trim().split(/\s+/);
                 let lastToken = tokens[tokens.length - 1].toLowerCase();
 
-                const suggestions = [];
                 if ([".", "from", "join"].includes(lastToken)) {
-                    return { suggestions };
+                    return { suggestions: [] };
+                }
+                let suggestions = [];
+                if (this.mainOptions.useDocumentSuggest) {
+                    suggestions = this.getDocumentSuggestion(model, position, allDefineInfos);
                 }
 
                 // 찾고자 하는 키워드
@@ -119,9 +129,74 @@ export class WordSuggestion {
                         suggestions.push(addItem);
                     });
                 }
+
                 return { suggestions: suggestions };
             },
         });
+    }
+
+    /**
+     * document Suggestion
+     *
+     * @param {Editor model} model
+     * @param {Editor position } position
+     * @returns
+     */
+    getDocumentSuggestion(model, position, allDefineInfos) {
+        var currentLine = model.getLineContent(position.lineNumber);
+        var currentWord = currentLine
+            .substring(0, position.column - 1)
+            .split(/\s/)
+            .pop();
+
+        // 현재 위치의 텍스트를 가져옵니다.
+        var text = model.getValue();
+        var wordSet = new Set();
+        var wordPattern = /\b\w+\b/g;
+        var match;
+
+        // 주석과 문자열을 제외한 유용한 코드 부분만 추출합니다.
+        var lines = text.split("\n");
+        lines.forEach(function (line) {
+            var inComment = false;
+            var inString = false;
+            for (var i = 0; i < line.length; i++) {
+                var char = line[i];
+                if (char === "-" && line[i + 1] === "-") {
+                    break; // Line comment starts
+                }
+                if (char === "/" && line[i + 1] === "*") {
+                    inComment = true; // Block comment starts
+                    i++;
+                } else if (char === "*" && line[i + 1] === "/") {
+                    inComment = false; // Block comment ends
+                    i++;
+                } else if (char === '"' || char === "'") {
+                    inString = !inString; // String starts and ends
+                } else if (!inComment && !inString && /\w/.test(char)) {
+                    wordPattern.lastIndex = i; // Set the start index for word pattern match
+                    while ((match = wordPattern.exec(line)) !== null) {
+                        var matchWord = match[0];
+                        wordSet.add(matchWord);
+                        i = wordPattern.lastIndex - 1;
+                    }
+                }
+            }
+        });
+
+        // 문서 내 단어를 자동완성 항목으로 변환합니다.
+        return Array.from(wordSet)
+            .filter(function (word) {
+                return word !== currentWord && !allDefineInfos.includes(word.toLowerCase()); // 현재 입력 중인 단어는 제외
+            })
+            .map(function (word) {
+                return {
+                    label: word,
+                    kind: monaco.languages.CompletionItemKind.Text,
+                    insertText: word,
+                    detail: "",
+                };
+            });
     }
 
     dbObjectSuggestion() {
