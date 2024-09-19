@@ -238,16 +238,20 @@ export class codeEditor {
         });
 
         if (this.options.usePaste && (navigator.clipboard || document.queryCommandSupported("paste")) && window.isSecureContext) {
-            this.editor.addAction({
-                id: "varsql.paste",
-                label: this.options.message.paste,
-                keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
-                contextMenuGroupId: "9_cutcopypaste",
-                contextMenuOrder: 1.2,
-                run: function (ed) {
-                    ed.trigger("keyboard", "editor.action.clipboardPasteAction");
-                },
-            });
+            try {
+                this.editor.addAction({
+                    id: "varsql.paste",
+                    label: this.options.message.paste,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
+                    contextMenuGroupId: "9_cutcopypaste",
+                    contextMenuOrder: 1.2,
+                    run: function (ed) {
+                        ed.trigger("keyboard", "editor.action.clipboardPasteAction");
+                    },
+                });
+            } catch (e) {
+                console.log(e);
+            }
         }
 
         const contextItems = this.options.contextItems;
@@ -275,8 +279,8 @@ export class codeEditor {
         }
 
         // 불필요한 컨텍스트 메뉴 제거.
-        //const removableIds = ["editor.action.quickCommand", "editor.action.clipboardCutAction", "editor.action.clipboardCopyAction", "editor.action.clipboardPasteAction"];
-        const removableIds = [];
+        const removableIds = ["editor.action.quickCommand", "editor.action.clipboardCutAction", "editor.action.clipboardCopyAction", "editor.action.clipboardPasteAction"];
+        //const removableIds = [];
         const contextmenu = this.editor.getContribution("editor.contrib.contextmenu");
         const realMethod = contextmenu._getMenuActions;
 
